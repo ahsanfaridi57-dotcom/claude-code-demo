@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="10K Hours">
+  <meta name="theme-color" content="#FAF9F5">
+  <title>10,000 Hours</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --bg:        #FAF9F5;
+      --surface:   #FFFFFF;
+      --surface2:  #F0EDE6;
+      --accent:    #D97757;
+      --accent-dk: #C06040;
+      --text:      #1F1E1D;
+      --text2:     #78746E;
+      --border:    #E5E1D9;
+      --danger-bg: #FEE2E2;
+      --danger:    #C53030;
+      --streak-bg: #FFF3E0;
+      --streak-fg: #C75000;
+      --r:    16px;
+      --r-sm: 10px;
+      --r-xs:  6px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+
+    /* ── LAYOUT ── */
+    #app {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .view {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+    }
+
+    .safe-wrap {
+      padding-top: env(safe-area-inset-top, 20px);
+      padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 24px);
+      padding-left:  max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    /* ── TYPOGRAPHY ── */
+    h1 { font-size: 28px; font-weight: 700; letter-spacing: -.4px; line-height: 1.15; }
+    h2 { font-size: 20px; font-weight: 700; letter-spacing: -.3px; }
+    h3 { font-size: 17px; font-weight: 600; }
+
+    /* ── BUTTONS ── */
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      -webkit-appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      transition: opacity .12s, transform .1s;
+    }
+    button:active { opacity: .72; transform: scale(.96); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-radius: var(--r-sm);
+      padding: 13px 20px;
+      font-size: 15px;
+    }
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border-radius: var(--r-sm);
+      padding: 13px 16px;
+      font-size: 15px;
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--accent);
+      padding: 8px 4px;
+      font-size: 16px;
+    }
+    .btn-danger {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border-radius: var(--r-sm);
+      padding: 10px 14px;
+      font-size: 14px;
+    }
+    .btn-sm { padding: 8px 14px; font-size: 14px; }
+    .btn-full { width: 100%; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--r);
+      border: 1px solid var(--border);
+    }
+    .card-pad  { padding: 18px; }
+    .card-pad-lg { padding: 22px; }
+
+    /* ── PROGRESS BAR ── */
+    .prog-track {
+      height: 8px;
+      background: var(--surface2);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .prog-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 99px;
+      transition: width .5s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ── QUOTE ── */
+    .quote-card {
+      background: var(--surface);
+      border-radius: var(--r);
+      border-left: 4px solid var(--accent);
+      padding: 18px 18px 18px 16px;
+    }
+    .quote-text {
+      font-size: 14px;
+      line-height: 1.55;
+      font-style: italic;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .quote-author {
+      font-size: 12px;
+      color: var(--text2);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    /* ── ACTIVITY CARD (home list) ── */
+    .act-card {
+      background: var(--surface);
+      border-radius: var(--r);
+      border: 1px solid var(--border);
+      padding: 18px;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .act-card:active { transform: scale(.985); }
+
+    /* ── STREAK BADGE ── */
+    .streak-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: var(--streak-bg);
+      color: var(--streak-fg);
+      padding: 3px 9px 3px 7px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ── 7-DAY CHART ── */
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 5px;
+      height: 72px;
+    }
+    .chart-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+    .chart-bar-wrap {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+    }
+    .chart-bar {
+      width: 100%;
+      border-radius: 4px 4px 0 0;
+      min-height: 0;
+      transition: height .3s ease;
+    }
+    .chart-day-label {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text2);
+    }
+    .chart-day-label.today {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* ── TIME QUICK-BUTTONS ── */
+    .time-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .time-btn {
+      background: var(--surface2);
+      color: var(--text);
+      border-radius: var(--r-sm);
+      padding: 16px 8px;
+      font-size: 15px;
+      font-weight: 600;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all .12s;
+    }
+    .time-btn:active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: #FFF0E8;
+      transform: scale(.96);
+    }
+
+    /* ── INPUTS ── */
+    .input {
+      background: var(--surface2);
+      border: 1.5px solid transparent;
+      border-radius: var(--r-sm);
+      padding: 13px 14px;
+      font-size: 16px;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      transition: border-color .15s;
+      -webkit-appearance: none;
+      width: 100%;
+    }
+    .input:focus { border-color: var(--accent); }
+    .input.error  { border-color: var(--danger); }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    /* ── ENTRY ROW ── */
+    .entry-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .entry-row:last-child { border-bottom: none; }
+
+    /* ── MODAL / BOTTOM SHEET ── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      display: flex;
+      align-items: flex-end;
+      z-index: 200;
+      animation: fadeIn .2s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .sheet {
+      background: var(--bg);
+      width: 100%;
+      border-radius: 22px 22px 0 0;
+      padding: 28px 20px calc(28px + env(safe-area-inset-bottom, 16px));
+      animation: slideUp .28s cubic-bezier(.4,0,.2,1);
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0);    }
+    }
+    .sheet-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 99px;
+      margin: 0 auto 22px;
+    }
+
+    /* ── SECTION HEADER ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    /* ── LABEL ── */
+    .label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    /* ── MILESTONE PILL ── */
+    .milestone-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--surface2);
+      color: var(--text2);
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ── DIVIDER ── */
+    .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+    /* ── EMPTY STATE ── */
+    .empty {
+      text-align: center;
+      padding: 44px 20px;
+      color: var(--text2);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    /* ── UTILITY ── */
+    .flex     { display: flex; }
+    .col      { display: flex; flex-direction: column; }
+    .items-c  { align-items: center; }
+    .between  { justify-content: space-between; }
+    .gap-1    { gap: 4px; }
+    .gap-2    { gap: 8px; }
+    .gap-3    { gap: 12px; }
+    .gap-4    { gap: 16px; }
+    .mt-1     { margin-top: 4px; }
+    .mt-2     { margin-top: 8px; }
+    .mt-3     { margin-top: 12px; }
+    .mt-4     { margin-top: 16px; }
+    .mt-5     { margin-top: 20px; }
+    .mt-6     { margin-top: 24px; }
+    .mb-2     { margin-bottom: 8px; }
+    .mb-3     { margin-bottom: 12px; }
+    .mb-4     { margin-bottom: 16px; }
+    .mb-5     { margin-bottom: 20px; }
+    .text-sm  { font-size: 14px; }
+    .text-xs  { font-size: 12px; }
+    .muted    { color: var(--text2); }
+    .bold     { font-weight: 700; }
+    .semi     { font-weight: 600; }
+    .accent   { color: var(--accent); }
+    .w-full   { width: 100%; }
+    .shrink-0 { flex-shrink: 0; }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+<input type="file" id="fileInput" accept=".json" style="display:none">
+
+<script>
+'use strict';
+
+// ─────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────
+
+const QUOTES = [
+  { text: "Compare yourself to who you were yesterday, not to who someone else is today.", author: "Jordan B. Peterson" },
+  { text: "You must determine where you are going in your life, because you cannot get there unless you move in that direction.", author: "Jordan B. Peterson" },
+  { text: "What you aim at determines what you see.", author: "Jordan B. Peterson" },
+  { text: "The purpose of life is finding the largest burden that you can bear and bearing it.", author: "Jordan B. Peterson" },
+  { text: "The mystery of human existence lies not in just staying alive, but in finding something to live for.", author: "Fyodor Dostoevsky" },
+  { text: "Beauty will save the world.", author: "Fyodor Dostoevsky" },
+  { text: "To go wrong in one's own way is better than to go right in someone else's.", author: "Fyodor Dostoevsky" },
+  { text: "Pain and suffering are always inevitable for a large intelligence and a deep heart.", author: "Fyodor Dostoevsky" },
+  { text: "A book must be the axe for the frozen sea within us.", author: "Franz Kafka" },
+  { text: "There is infinite hope, but not for us.", author: "Franz Kafka" },
+  { text: "In the struggle between yourself and the world, second the world.", author: "Franz Kafka" },
+  { text: "Everything can be taken from a man but one thing: the last of the human freedoms — to choose one's attitude in any given set of circumstances.", author: "Viktor E. Frankl" },
+  { text: "When we are no longer able to change a situation, we are challenged to change ourselves.", author: "Viktor E. Frankl" },
+  { text: "Life is never made unbearable by circumstances, but only by lack of meaning and purpose.", author: "Viktor E. Frankl" },
+  { text: "Between stimulus and response there is a space. In that space is our power to choose our response.", author: "Viktor E. Frankl" },
+  { text: "Who looks outside, dreams; who looks inside, awakes.", author: "Carl Jung" },
+  { text: "The most terrifying thing is to accept oneself completely.", author: "Carl Jung" },
+  { text: "You are what you do, not what you say you'll do.", author: "Carl Jung" },
+  { text: "He who has a why to live can bear almost any how.", author: "Friedrich Nietzsche" },
+  { text: "Without music, life would be a mistake.", author: "Friedrich Nietzsche" },
+  { text: "That which does not kill us makes us stronger.", author: "Friedrich Nietzsche" },
+  { text: "Become who you are.", author: "Friedrich Nietzsche" },
+];
+
+const MILESTONES = [100, 500, 1000, 2500, 5000, 10000];
+const GOAL = 10000;
+const STORE_KEY = '10k_hours_v1';
+
+const DEFAULT_ACTIVITIES = [
+  { name: 'Filmmaking', why: '' },
+  { name: 'YouTube',    why: '' },
+  { name: 'Reading',    why: '' },
+  { name: 'Exercise',   why: '' },
+];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+
+let DB = { activities: [], entries: [] };
+
+let UI = {
+  view:        'home',   // 'home' | 'detail'
+  selectedId:  null,
+  modal:       null,     // 'activity-form' | 'confirm-delete' | 'log'
+  editTarget:  null,     // activity object when editing
+  deleteTarget: null,    // { type: 'activity'|'entry', id }
+  customMins:  '',
+};
+
+// ─────────────────────────────────────────────
+// STORAGE
+// ─────────────────────────────────────────────
+
+function dbLoad() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) { DB = JSON.parse(raw); return; }
+  } catch(_) {}
+  dbInit();
+}
+
+function dbSave() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(DB));
+}
+
+function dbInit() {
+  DB.activities = DEFAULT_ACTIVITIES.map(a => ({
+    id: uid(), name: a.name, why: a.why, createdAt: Date.now()
+  }));
+  DB.entries = [];
+  dbSave();
+}
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function dateStr(d) {
+  return d.toISOString().slice(0, 10);
+}
+
+function actEntries(aid) {
+  return DB.entries.filter(e => e.activityId === aid);
+}
+
+function totalMins(aid) {
+  return actEntries(aid).reduce((s, e) => s + e.minutes, 0);
+}
+
+function totalHours(aid) {
+  return totalMins(aid) / 60;
+}
+
+function nextMilestone(aid) {
+  const h = totalHours(aid);
+  return MILESTONES.find(m => m > h) || null;
+}
+
+function calcStreak(aid) {
+  const days = new Set(actEntries(aid).map(e => e.date));
+  if (!days.size) return 0;
+
+  let streak = 0;
+  const d = new Date();
+  let s = dateStr(d);
+
+  // If no entry today, try yesterday before starting count
+  if (!days.has(s)) {
+    d.setDate(d.getDate() - 1);
+    s = dateStr(d);
+    if (!days.has(s)) return 0;
+  }
+
+  while (days.has(s)) {
+    streak++;
+    d.setDate(d.getDate() - 1);
+    s = dateStr(d);
+  }
+  return streak;
+}
+
+function last7(aid) {
+  const result = [];
+  const base = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(base);
+    d.setDate(base.getDate() - i);
+    const ds = dateStr(d);
+    const mins = DB.entries
+      .filter(e => e.activityId === aid && e.date === ds)
+      .reduce((s, e) => s + e.minutes, 0);
+    result.push({
+      label: ['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()],
+      hours: mins / 60,
+      date:  ds,
+    });
+  }
+  return result;
+}
+
+function dailyQuote() {
+  const day = Math.floor(Date.now() / 86400000);
+  return QUOTES[day % QUOTES.length];
+}
+
+function fmtHours(h) {
+  if (h <= 0) return '0m';
+  const hrs = Math.floor(h);
+  const mins = Math.round((h - hrs) * 60);
+  if (hrs === 0) return `${mins}m`;
+  if (mins === 0) return `${hrs}h`;
+  return `${hrs}h ${mins}m`;
+}
+
+function fmtDate(ds) {
+  const t = todayStr();
+  if (ds === t) return 'Today';
+  const yest = new Date(); yest.setDate(yest.getDate() - 1);
+  if (ds === dateStr(yest)) return 'Yesterday';
+  const [y, m, d] = ds.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ─────────────────────────────────────────────
+// ACTIONS
+// ─────────────────────────────────────────────
+
+function actAdd(name, why) {
+  DB.activities.push({ id: uid(), name: name.trim(), why: why.trim(), createdAt: Date.now() });
+  dbSave();
+}
+
+function actUpdate(id, name, why) {
+  const a = DB.activities.find(a => a.id === id);
+  if (a) { a.name = name.trim(); a.why = why.trim(); dbSave(); }
+}
+
+function actDelete(id) {
+  DB.activities = DB.activities.filter(a => a.id !== id);
+  DB.entries    = DB.entries.filter(e => e.activityId !== id);
+  dbSave();
+}
+
+function entryAdd(aid, minutes) {
+  if (!minutes || minutes <= 0) return;
+  DB.entries.push({ id: uid(), activityId: aid, minutes: +minutes, date: todayStr(), createdAt: Date.now() });
+  dbSave();
+}
+
+function entryDelete(id) {
+  DB.entries = DB.entries.filter(e => e.id !== id);
+  dbSave();
+}
+
+// ─────────────────────────────────────────────
+// EXPORT / IMPORT
+// ─────────────────────────────────────────────
+
+function doExport() {
+  const blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `10k-hours-${todayStr()}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function doImport(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!Array.isArray(parsed.activities) || !Array.isArray(parsed.entries))
+        throw new Error('bad format');
+      DB = parsed;
+      dbSave();
+      UI.view = 'home';
+      UI.selectedId = null;
+      render();
+      showToast('Backup restored!');
+    } catch(_) {
+      showToast('Could not read file — check the format.', true);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ─────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────
+
+function showToast(msg, isErr) {
+  const t = document.createElement('div');
+  t.style.cssText = `
+    position:fixed; bottom: calc(24px + env(safe-area-inset-bottom,0px));
+    left:50%; transform:translateX(-50%);
+    background:${isErr ? '#C53030' : '#1F1E1D'};
+    color:#fff; padding:10px 20px; border-radius:99px;
+    font-size:14px; font-weight:600; z-index:999;
+    box-shadow:0 4px 20px rgba(0,0,0,.25);
+    white-space:nowrap;
+    animation: toastIn .2s ease;
+  `;
+  t.textContent = msg;
+  const style = document.createElement('style');
+  style.textContent = '@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+  document.head.appendChild(style);
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+
+function render() {
+  const app = document.getElementById('app');
+
+  // Remove old modal if any
+  const oldOverlay = app.querySelector('.overlay');
+  if (oldOverlay) oldOverlay.remove();
+
+  // Switch view
+  let viewEl = app.querySelector('.view');
+  if (!viewEl) {
+    viewEl = document.createElement('div');
+    viewEl.className = 'view';
+    app.appendChild(viewEl);
+  }
+
+  if (UI.view === 'home')   renderHome(viewEl);
+  else                      renderDetail(viewEl);
+
+  if (UI.modal) {
+    app.appendChild(buildModal());
+  }
+}
+
+// ── HOME ──────────────────────────────────────
+
+function renderHome(el) {
+  const quote = dailyQuote();
+
+  let cardsHTML = '';
+  if (DB.activities.length === 0) {
+    cardsHTML = `<div class="empty">No activities yet.<br>Tap <strong>+ New</strong> to add one.</div>`;
+  } else {
+    cardsHTML = DB.activities.map(a => {
+      const h     = totalHours(a.id);
+      const pct   = Math.min(h / GOAL * 100, 100);
+      const stk   = calcStreak(a.id);
+      const nextM = nextMilestone(a.id);
+      return `
+        <div class="act-card mb-3" data-act="${esc(a.id)}">
+          <div class="flex items-c between mb-3">
+            <h3>${esc(a.name)}</h3>
+            ${stk > 0 ? `<span class="streak-badge">🔥 ${stk}d</span>` : ''}
+          </div>
+          ${a.why ? `<p class="text-sm muted mb-3" style="font-style:italic">${esc(a.why)}</p>` : ''}
+          <div class="flex items-c between mb-2">
+            <span class="semi" style="font-size:15px;">${fmtHours(h)}</span>
+            <span class="text-xs muted">
+              ${pct.toFixed(1)}%
+              ${nextM ? ` · next: ${nextM.toLocaleString()}h` : ' · Goal reached! 🎉'}
+            </span>
+          </div>
+          <div class="prog-track">
+            <div class="prog-fill" style="width:${pct}%"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  el.innerHTML = `
+    <div class="safe-wrap">
+      <!-- Header -->
+      <div class="flex items-c between mt-2 mb-5">
+        <div>
+          <h1>10K Hours</h1>
+          <p class="text-xs muted mt-1" style="letter-spacing:.3px;">PATH TO MASTERY</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn-secondary btn-sm" id="importBtn">Import</button>
+          <button class="btn-secondary btn-sm" id="exportBtn">Export</button>
+        </div>
+      </div>
+
+      <!-- Quote -->
+      <div class="quote-card mb-5">
+        <p class="quote-text">&ldquo;${esc(quote.text)}&rdquo;</p>
+        <p class="quote-author">— ${esc(quote.author)}</p>
+      </div>
+
+      <!-- Activities -->
+      <div class="section-header">
+        <h2>Activities</h2>
+        <button class="btn-primary btn-sm" id="addActBtn">+ New</button>
+      </div>
+
+      ${cardsHTML}
+    </div>
+  `;
+
+  // Events
+  el.querySelector('#exportBtn').onclick = doExport;
+  el.querySelector('#importBtn').onclick = () => document.getElementById('fileInput').click();
+  el.querySelector('#addActBtn').onclick = () => {
+    UI.modal = 'activity-form';
+    UI.editTarget = null;
+    render();
+  };
+  el.querySelectorAll('.act-card').forEach(card => {
+    card.onclick = () => {
+      UI.selectedId = card.dataset.act;
+      UI.view = 'detail';
+      render();
+    };
+  });
+}
+
+// ── DETAIL ────────────────────────────────────
+
+function renderDetail(el) {
+  const act = DB.activities.find(a => a.id === UI.selectedId);
+  if (!act) { UI.view = 'home'; renderHome(el); return; }
+
+  const h     = totalHours(act.id);
+  const pct   = Math.min(h / GOAL * 100, 100);
+  const stk   = calcStreak(act.id);
+  const nextM = nextMilestone(act.id);
+  const days  = last7(act.id);
+  const maxH  = Math.max(...days.map(d => d.hours), 0.01);
+  const today = todayStr();
+  const BAR_MAX_PX = 72;
+
+  const chartHTML = days.map(d => {
+    const px  = Math.max(Math.round((d.hours / maxH) * BAR_MAX_PX), d.hours > 0 ? 3 : 0);
+    const isT = d.date === today;
+    return `
+      <div class="chart-col">
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:${px}px; background:${isT ? 'var(--accent)' : '#E0C5B8'};"></div>
+        </div>
+        <span class="chart-day-label ${isT ? 'today' : ''}">${d.label}</span>
+      </div>
+    `;
+  }).join('');
+
+  const recentEntries = actEntries(act.id)
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, 40);
+
+  const entriesHTML = recentEntries.length === 0
+    ? `<p class="text-sm muted" style="padding:12px 0;">No entries yet. Log your first session above!</p>`
+    : recentEntries.map(e => `
+        <div class="entry-row">
+          <div>
+            <p class="semi text-sm">${fmtHours(e.minutes / 60)}</p>
+            <p class="text-xs muted mt-1">${fmtDate(e.date)}</p>
+          </div>
+          <button class="btn-danger btn-sm" data-del-entry="${esc(e.id)}">Remove</button>
+        </div>
+      `).join('');
+
+  el.innerHTML = `
+    <div class="safe-wrap">
+
+      <!-- Back row -->
+      <div class="flex items-c between mt-2 mb-4">
+        <button class="btn-ghost" id="backBtn" style="font-size:15px; gap:4px;">
+          <span style="font-size:18px; line-height:1;">‹</span> Back
+        </button>
+        <div class="flex gap-2">
+          <button class="btn-secondary btn-sm" id="editActBtn">Edit</button>
+          <button class="btn-danger btn-sm" id="delActBtn">Delete</button>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="mb-5">
+        <div class="flex items-c gap-3 mb-1" style="flex-wrap:wrap;">
+          <h1 style="font-size:26px;">${esc(act.name)}</h1>
+          ${stk > 0 ? `<span class="streak-badge">🔥 ${stk} day streak</span>` : ''}
+        </div>
+        ${act.why
+          ? `<p class="text-sm muted" style="font-style:italic; margin-top:4px;">&ldquo;${esc(act.why)}&rdquo;</p>`
+          : `<button class="btn-ghost text-sm" id="addWhyBtn" style="color:var(--text2); padding:4px 0; margin-top:2px;">+ Add your why</button>`
+        }
+      </div>
+
+      <!-- Stats card -->
+      <div class="card card-pad-lg mb-3">
+        <div class="flex items-c between mb-4">
+          <div>
+            <p class="text-xs muted" style="text-transform:uppercase; letter-spacing:.5px; font-weight:600; margin-bottom:4px;">Total Logged</p>
+            <p style="font-size:36px; font-weight:800; color:var(--accent); line-height:1;">${fmtHours(h)}</p>
+          </div>
+          <div style="text-align:right;">
+            <p class="text-xs muted" style="text-transform:uppercase; letter-spacing:.5px; font-weight:600; margin-bottom:4px;">Progress</p>
+            <p style="font-size:28px; font-weight:700; line-height:1;">${pct.toFixed(1)}%</p>
+          </div>
+        </div>
+
+        <div class="prog-track mb-3" style="height:10px;">
+          <div class="prog-fill" style="width:${pct}%;"></div>
+        </div>
+
+        ${nextM
+          ? `<div class="flex items-c between">
+               <span class="text-xs muted">Next: <strong style="color:var(--text)">${nextM.toLocaleString()}h</strong></span>
+               <span class="milestone-pill">🎯 ${fmtHours(Math.max(0, nextM - h))} to go</span>
+             </div>`
+          : `<p class="text-sm semi accent">🏆 10,000 hour goal reached!</p>`
+        }
+      </div>
+
+      <!-- 7-day chart -->
+      <div class="card card-pad mb-3">
+        <p class="text-xs muted mb-3" style="text-transform:uppercase; letter-spacing:.5px; font-weight:600;">Last 7 Days</p>
+        <div class="chart-bars mb-1">${chartHTML}</div>
+      </div>
+
+      <!-- Log time -->
+      <div class="card card-pad mb-3">
+        <p class="text-xs muted mb-3" style="text-transform:uppercase; letter-spacing:.5px; font-weight:600;">Log a Session</p>
+        <div class="time-grid mb-3">
+          <button class="time-btn" data-mins="30">30 min</button>
+          <button class="time-btn" data-mins="45">45 min</button>
+          <button class="time-btn" data-mins="60">1 hour</button>
+        </div>
+        <div class="flex gap-2" style="align-items:stretch;">
+          <input type="number" class="input" id="customMins"
+            placeholder="Custom minutes" min="1" max="1440"
+            value="${esc(UI.customMins)}"
+            style="flex:1;"
+          >
+          <button class="btn-primary shrink-0" id="logCustomBtn">Log</button>
+        </div>
+      </div>
+
+      <!-- Entry history -->
+      ${recentEntries.length > 0 ? `
+        <div class="card card-pad">
+          <p class="text-xs muted mb-1" style="text-transform:uppercase; letter-spacing:.5px; font-weight:600; margin-bottom:6px;">Recent Entries</p>
+          ${entriesHTML}
+        </div>
+      ` : `
+        <div class="card card-pad">
+          ${entriesHTML}
+        </div>
+      `}
+
+    </div>
+  `;
+
+  // Events
+  el.querySelector('#backBtn').onclick = () => {
+    UI.view = 'home';
+    UI.customMins = '';
+    render();
+  };
+
+  el.querySelector('#editActBtn').onclick = () => {
+    UI.modal = 'activity-form';
+    UI.editTarget = { ...act };
+    render();
+  };
+
+  el.querySelector('#delActBtn').onclick = () => {
+    UI.modal = 'confirm-delete';
+    UI.deleteTarget = { type: 'activity', id: act.id };
+    render();
+  };
+
+  el.querySelector('#addWhyBtn')?.addEventListener('click', () => {
+    UI.modal = 'activity-form';
+    UI.editTarget = { ...act };
+    render();
+  });
+
+  el.querySelectorAll('.time-btn').forEach(btn => {
+    btn.onclick = () => {
+      entryAdd(act.id, +btn.dataset.mins);
+      render();
+    };
+  });
+
+  const customInput = el.querySelector('#customMins');
+  customInput.addEventListener('input', e => { UI.customMins = e.target.value; });
+
+  el.querySelector('#logCustomBtn').onclick = () => {
+    const m = parseInt(customInput.value, 10);
+    if (m > 0 && m <= 1440) {
+      entryAdd(act.id, m);
+      UI.customMins = '';
+      render();
+    } else {
+      customInput.classList.add('error');
+      setTimeout(() => customInput.classList.remove('error'), 1000);
+    }
+  };
+
+  el.querySelectorAll('[data-del-entry]').forEach(btn => {
+    btn.onclick = () => {
+      UI.modal = 'confirm-delete';
+      UI.deleteTarget = { type: 'entry', id: btn.dataset.delEntry };
+      render();
+    };
+  });
+}
+
+// ── MODAL ─────────────────────────────────────
+
+function buildModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+
+  if (UI.modal === 'activity-form') {
+    const isEdit = !!UI.editTarget;
+    const name   = isEdit ? UI.editTarget.name : '';
+    const why    = isEdit ? UI.editTarget.why  : '';
+
+    overlay.innerHTML = `
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <h2 class="mb-5">${isEdit ? 'Edit Activity' : 'New Activity'}</h2>
+
+        <label class="label">Activity Name</label>
+        <input type="text" class="input mb-4" id="modalName"
+          placeholder="e.g. Guitar, Writing, Coding…"
+          value="${esc(name)}" maxlength="40">
+
+        <label class="label">Your Why <span style="opacity:.55;font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <input type="text" class="input mb-5" id="modalWhy"
+          placeholder="Why does this matter to you?"
+          value="${esc(why)}" maxlength="100">
+
+        <div class="flex gap-3">
+          <button class="btn-secondary btn-full" id="modalCancel">Cancel</button>
+          <button class="btn-primary btn-full" id="modalSave">${isEdit ? 'Save Changes' : 'Add Activity'}</button>
+        </div>
+      </div>
+    `;
+
+    overlay.onclick = e => { if (e.target === overlay) closeModal(); };
+    setTimeout(() => {
+      overlay.querySelector('#modalCancel').onclick = closeModal;
+      overlay.querySelector('#modalSave').onclick   = () => {
+        const nameEl = overlay.querySelector('#modalName');
+        const whyEl  = overlay.querySelector('#modalWhy');
+        const n = nameEl.value.trim();
+        if (!n) { nameEl.classList.add('error'); return; }
+        if (isEdit) actUpdate(UI.editTarget.id, n, whyEl.value);
+        else        actAdd(n, whyEl.value);
+        closeModal();
+      };
+      overlay.querySelector('#modalName').focus();
+    }, 0);
+
+  } else if (UI.modal === 'confirm-delete') {
+    const isAct = UI.deleteTarget?.type === 'activity';
+
+    overlay.innerHTML = `
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <h2 class="mb-2">Are you sure?</h2>
+        <p class="text-sm muted mb-5" style="line-height:1.55;">
+          ${isAct
+            ? 'This will permanently delete this activity and <strong>all</strong> of its logged time. This cannot be undone.'
+            : 'This will remove this time entry.'
+          }
+        </p>
+        <div class="flex gap-3">
+          <button class="btn-secondary btn-full" id="delCancel">Cancel</button>
+          <button class="btn-danger btn-full" id="delConfirm" style="border-radius:var(--r-sm); padding:13px 20px; font-size:15px;">Delete</button>
+        </div>
+      </div>
+    `;
+
+    overlay.onclick = e => { if (e.target === overlay) closeModal(); };
+    setTimeout(() => {
+      overlay.querySelector('#delCancel').onclick  = closeModal;
+      overlay.querySelector('#delConfirm').onclick = () => {
+        if (UI.deleteTarget.type === 'activity') {
+          actDelete(UI.deleteTarget.id);
+          UI.view = 'home';
+          UI.selectedId = null;
+        } else {
+          entryDelete(UI.deleteTarget.id);
+        }
+        UI.deleteTarget = null;
+        closeModal();
+      };
+    }, 0);
+  }
+
+  return overlay;
+}
+
+function closeModal() {
+  UI.modal = null;
+  UI.editTarget = null;
+  render();
+}
+
+// ─────────────────────────────────────────────
+// APPLE TOUCH ICON (canvas-generated)
+// ─────────────────────────────────────────────
+
+function setIcon() {
+  try {
+    const c = document.createElement('canvas');
+    c.width = c.height = 180;
+    const ctx = c.getContext('2d');
+
+    // Background
+    ctx.fillStyle = '#D97757';
+    ctx.beginPath();
+    ctx.roundRect(0, 0, 180, 180, 38);
+    ctx.fill();
+
+    // Text
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 56px -apple-system, sans-serif';
+    ctx.fillText('10K', 90, 84);
+    ctx.font = '600 22px -apple-system, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,.75)';
+    ctx.fillText('HOURS', 90, 128);
+
+    const link = document.createElement('link');
+    link.rel   = 'apple-touch-icon';
+    link.href  = c.toDataURL('image/png');
+    document.head.appendChild(link);
+  } catch(_) {}
+}
+
+// ─────────────────────────────────────────────
+// FILE INPUT
+// ─────────────────────────────────────────────
+
+document.getElementById('fileInput').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (f) { doImport(f); e.target.value = ''; }
+});
+
+// ─────────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────────
+
+dbLoad();
+setIcon();
+render();
+</script>
+</body>
+</html>
