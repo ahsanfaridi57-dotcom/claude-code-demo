@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="30 Days">
+  <meta name="theme-color" content="#FBFAF8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#14120E" media="(prefers-color-scheme: dark)">
+  <title>iPhone Filmmaking in 30 Days</title>
+<style>
+  :root{
+    --bg:#FBFAF8; --surface:#FFFFFF; --surface-2:#F4F1EB;
+    --ink:#1C1A16; --ink-soft:#57524A; --ink-faint:#8C8477;
+    --line:#E5E0D6; --line-strong:#D6CFC1;
+    --accent:#C07714; --accent-ink:#3A2600; --accent-wash:rgba(192,119,20,.10);
+    --done:#2E7D6B; --done-wash:rgba(46,125,107,.12);
+    --shadow:0 1px 2px rgba(28,26,22,.05),0 8px 24px rgba(28,26,22,.06);
+    --maxread:66ch;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#14120E; --surface:#1D1A14; --surface-2:#252016;
+      --ink:#F2EEE5; --ink-soft:#B2AA99; --ink-faint:#7C7568;
+      --line:#2F2A21; --line-strong:#3B3428;
+      --accent:#E8A33D; --accent-ink:#14120E; --accent-wash:rgba(232,163,61,.12);
+      --done:#4FB79C; --done-wash:rgba(79,183,156,.14);
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#FBFAF8; --surface:#FFFFFF; --surface-2:#F4F1EB;
+    --ink:#1C1A16; --ink-soft:#57524A; --ink-faint:#8C8477;
+    --line:#E5E0D6; --line-strong:#D6CFC1;
+    --accent:#C07714; --accent-ink:#3A2600; --accent-wash:rgba(192,119,20,.10);
+    --done:#2E7D6B; --done-wash:rgba(46,125,107,.12);
+    --shadow:0 1px 2px rgba(28,26,22,.05),0 8px 24px rgba(28,26,22,.06);
+  }
+  :root[data-theme="dark"]{
+    --bg:#14120E; --surface:#1D1A14; --surface-2:#252016;
+    --ink:#F2EEE5; --ink-soft:#B2AA99; --ink-faint:#7C7568;
+    --line:#2F2A21; --line-strong:#3B3428;
+    --accent:#E8A33D; --accent-ink:#14120E; --accent-wash:rgba(232,163,61,.12);
+    --done:#4FB79C; --done-wash:rgba(79,183,156,.14);
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{background:var(--bg)}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    line-height:1.6;-webkit-font-smoothing:antialiased;
+    text-underline-offset:2px;overscroll-behavior-y:none;
+  }
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+  .wrap{max-width:920px;margin:0 auto;padding:0 20px}
+
+  /* ---- sticky progress bar ---- */
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:saturate(1.4) blur(12px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-in{
+    max-width:920px;margin:0 auto;padding:10px 20px;
+    display:flex;align-items:center;gap:14px;
+  }
+  .rec{display:flex;align-items:center;gap:7px;flex:none}
+  .rec-dot{width:9px;height:9px;border-radius:50%;background:var(--accent);
+    box-shadow:0 0 0 0 var(--accent);animation:pulse 2.4s ease-out infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 60%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+  .rec-label{font-size:.72rem;letter-spacing:.14em;color:var(--ink-soft);font-weight:600}
+  .prog-track{flex:1;height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+  .prog-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 60%,var(--done)));border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+  .prog-count{flex:none;font-size:.78rem;color:var(--ink-soft);font-variant-numeric:tabular-nums;font-weight:600}
+  .prog-count b{color:var(--ink)}
+  .theme-btn{flex:none;background:transparent;border:1px solid var(--line);color:var(--ink-soft);
+    width:34px;height:30px;border-radius:8px;cursor:pointer;font-size:.95rem;display:grid;place-items:center;transition:.2s}
+  .theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .theme-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ---- hero ---- */
+  .hero{padding:56px 0 30px;position:relative}
+  .viewfinder{position:relative;border:1px solid var(--line);border-radius:14px;padding:38px 30px;background:
+    radial-gradient(120% 140% at 80% 0%,var(--accent-wash),transparent 60%),var(--surface);overflow:hidden}
+  .viewfinder::before,.viewfinder::after,.vf-b1,.vf-b2{content:"";position:absolute;width:22px;height:22px;border:2px solid var(--accent);opacity:.75}
+  .viewfinder::before{top:12px;left:12px;border-right:0;border-bottom:0;border-radius:4px 0 0 0}
+  .viewfinder::after{top:12px;right:12px;border-left:0;border-bottom:0;border-radius:0 4px 0 0}
+  .vf-b1{bottom:12px;left:12px;border-right:0;border-top:0;border-radius:0 0 0 4px}
+  .vf-b2{bottom:12px;right:12px;border-left:0;border-top:0;border-radius:0 0 4px 0}
+  .eyebrow{display:inline-flex;gap:10px;align-items:center;font-size:.72rem;letter-spacing:.16em;
+    color:var(--accent);font-weight:700;margin-bottom:16px}
+  .eyebrow .sep{color:var(--ink-faint)}
+  h1{font-size:clamp(2.1rem,6.2vw,3.5rem);line-height:1.02;letter-spacing:-.025em;
+    font-weight:800;margin:.1em 0 .35em;text-wrap:balance}
+  h1 em{font-style:normal;color:var(--accent)}
+  .lede{font-size:clamp(1rem,1.6vw,1.15rem);color:var(--ink-soft);max-width:60ch;margin:0}
+  .hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+  .btn{border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);
+    padding:11px 18px;border-radius:10px;font-size:.9rem;font-weight:600;cursor:pointer;text-decoration:none;
+    display:inline-flex;align-items:center;gap:9px;transition:.18s}
+  .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:var(--accent)}
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .btn-primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  .btn-primary:hover{filter:brightness(1.05)}
+  .btn .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+
+  /* ---- kit strip ---- */
+  .kit{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+  .chip{font-size:.7rem;letter-spacing:.06em;color:var(--ink-soft);background:var(--surface-2);
+    border:1px solid var(--line);padding:5px 11px;border-radius:99px;font-weight:600}
+  .chip b{color:var(--accent);font-weight:700}
+
+  /* ---- week nav ---- */
+  .weeknav{display:flex;gap:8px;flex-wrap:wrap;margin:34px 0 8px}
+  .weeknav a{flex:1 1 180px;text-decoration:none;color:var(--ink);background:var(--surface);
+    border:1px solid var(--line);border-radius:12px;padding:12px 14px;transition:.18s;display:block}
+  .weeknav a:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:var(--shadow)}
+  .weeknav .wk-k{font-size:.68rem;letter-spacing:.12em;color:var(--accent);font-weight:700}
+  .weeknav .wk-t{font-size:.92rem;font-weight:650;margin-top:3px}
+  .weeknav .wk-p{font-size:.72rem;color:var(--ink-faint);margin-top:4px;font-variant-numeric:tabular-nums}
+
+  /* ---- week section ---- */
+  .week{margin-top:46px;scroll-margin-top:70px}
+  .week-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--line-strong)}
+  .week-k{font-size:.74rem;letter-spacing:.14em;color:var(--accent);font-weight:700;flex:none}
+  .week-title{font-size:clamp(1.35rem,3vw,1.7rem);font-weight:750;letter-spacing:-.01em;margin:0;line-height:1.1}
+  .week-sub{color:var(--ink-faint);font-size:.9rem;flex-basis:100%;margin-top:-4px}
+  .week-tally{margin-left:auto;font-size:.75rem;color:var(--ink-soft);font-variant-numeric:tabular-nums;font-weight:600;
+    background:var(--surface-2);border:1px solid var(--line);padding:3px 10px;border-radius:99px}
+
+  /* ---- day card ---- */
+  .days{display:flex;flex-direction:column;gap:12px;margin-top:18px}
+  .day{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:border-color .2s}
+  .day.done{border-color:color-mix(in srgb,var(--done) 45%,var(--line))}
+  .day-head{display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;user-select:none;width:100%;
+    background:transparent;border:0;text-align:left;color:inherit;font:inherit}
+  .day-head:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .daynum{flex:none;font-size:.7rem;letter-spacing:.1em;color:var(--accent);font-weight:700;width:52px}
+  .day.done .daynum{color:var(--done)}
+  .day-titles{flex:1;min-width:0}
+  .day-title{font-size:1.02rem;font-weight:650;line-height:1.25;letter-spacing:-.01em}
+  .day-teaser{font-size:.83rem;color:var(--ink-faint);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .day.open .day-teaser{white-space:normal}
+  .chev{flex:none;color:var(--ink-faint);transition:transform .25s;font-size:.8rem}
+  .day.open .chev{transform:rotate(90deg)}
+
+  /* check toggle */
+  .check{flex:none;width:26px;height:26px;border-radius:8px;border:1.5px solid var(--line-strong);
+    background:var(--surface-2);cursor:pointer;display:grid;place-items:center;transition:.18s;padding:0}
+  .check:hover{border-color:var(--done)}
+  .check:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .check svg{width:15px;height:15px;stroke:var(--bg);stroke-width:3.2;fill:none;
+    stroke-linecap:round;stroke-linejoin:round;opacity:0;transform:scale(.4);transition:.18s}
+  .day.done .check{background:var(--done);border-color:var(--done)}
+  .day.done .check svg{opacity:1;transform:scale(1)}
+
+  /* body reveal */
+  .day-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
+  .day.open .day-body{grid-template-rows:1fr}
+  .day-body-in{overflow:hidden}
+  .day-content{padding:2px 18px 20px;border-top:1px solid var(--line);margin-top:0}
+  .day.open .day-content{padding-top:16px}
+  .block{margin-top:16px;max-width:var(--maxread)}
+  .block:first-child{margin-top:4px}
+  .block-k{font-size:.68rem;letter-spacing:.12em;font-weight:700;color:var(--ink-faint);
+    display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .block-k::before{content:"";width:14px;height:2px;background:var(--accent);border-radius:2px}
+  .block.ex .block-k::before{background:var(--done)}
+  .block p{margin:0;color:var(--ink-soft)}
+  .block.idea p{color:var(--ink)}
+  .block b{color:var(--ink);font-weight:650}
+  .exlen{font-size:.66rem;letter-spacing:.08em;color:var(--done);border:1px solid color-mix(in srgb,var(--done) 40%,var(--line));
+    padding:1px 7px;border-radius:99px;margin-left:auto;font-weight:700}
+
+  /* ---- reference card ---- */
+  .refcard{margin:56px 0 20px;background:var(--surface);border:1px solid var(--line-strong);border-radius:16px;
+    padding:30px 28px;position:relative;box-shadow:var(--shadow)}
+  .refcard h2{font-size:1.3rem;margin:0 0 4px;letter-spacing:-.01em}
+  .refcard .sub{color:var(--ink-faint);font-size:.85rem;margin:0 0 22px}
+  .ref-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:2px;
+    background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .ref-cell{background:var(--surface);padding:15px 16px}
+  .ref-cell .rk{font-size:.68rem;letter-spacing:.1em;color:var(--accent);font-weight:700;margin-bottom:6px}
+  .ref-cell p{margin:0;font-size:.86rem;color:var(--ink-soft)}
+  .ref-cell b{color:var(--ink)}
+
+  footer{padding:34px 0 60px;color:var(--ink-faint);font-size:.8rem;text-align:center;line-height:1.7}
+  footer a{color:var(--accent)}
+
+  @media (max-width:560px){
+    .viewfinder{padding:30px 20px}
+    .topbar-in{gap:10px;padding:9px 16px}
+    .rec-label{display:none}
+    .daynum{width:44px;font-size:.64rem}
+    .day-head{padding:14px 14px;gap:11px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important;animation:none!important}
+  }
+
+  /* fullscreen home-screen app: keep clear of notch & home indicator */
+  @supports(padding:max(0px)){
+    .topbar-in{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+    .wrap{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+    footer{padding-bottom:calc(50px + env(safe-area-inset-bottom))}
+    @media (max-width:560px){
+      .topbar-in{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="rec"><span class="rec-dot"></span><span class="rec-label mono">REC</span></div>
+    <div class="prog-track" role="progressbar" aria-label="Course progress" aria-valuemin="0" aria-valuemax="30" aria-valuenow="0" id="pbar"><div class="prog-fill" id="pfill"></div></div>
+    <div class="prog-count mono"><b id="pnum">0</b>/30</div>
+    <button class="theme-btn" id="themeBtn" aria-label="Toggle light or dark theme" title="Toggle theme">◐</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="viewfinder">
+      <span class="vf-b1"></span><span class="vf-b2"></span>
+      <div class="eyebrow mono">HANDHELD <span class="sep">/</span> NO GEAR <span class="sep">/</span> 30 DAYS</div>
+      <h1>Learn Filmmaking on an <em>iPhone</em>, one day at a time.</h1>
+      <p class="lede">A beginner-to-working-level course. One lesson a day, thirty minutes each — about ten to read, twenty to actually film. No tripod, no gimbal, no mic, no lights. By Day&nbsp;30 you'll shoot and cut a proper scene.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" id="resumeBtn"><span class="dot"></span><span id="resumeLbl">Start Day 1</span></button>
+        <button class="btn" id="expandBtn">Expand all</button>
+      </div>
+      <div class="kit">
+        <span class="chip mono"><b>4K</b> · 24 FPS</span>
+        <span class="chip mono">GRID ON</span>
+        <span class="chip mono">AE/AF LOCK</span>
+        <span class="chip mono">EXPOSE FOR HIGHLIGHTS</span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="weeknav" id="weeknav" aria-label="Jump to week"></nav>
+
+  <main id="course"></main>
+
+  <section class="refcard">
+    <h2>Quick-reference card</h2>
+    <p class="sub">The whole month on one screen — screenshot it for your next shoot.</p>
+    <div class="ref-grid">
+      <div class="ref-cell"><div class="rk mono">SETTINGS</div><p><b>4K / 24 fps</b>, grid on, AE/AF lock every shot, expose for highlights &amp; faces.</p></div>
+      <div class="ref-cell"><div class="rk mono">STABILITY</div><p>Elbows in, <b>brace on something</b>, 10-second shots, exhale slowly.</p></div>
+      <div class="ref-cell"><div class="rk mono">EVERY SCENE</div><p>Five-shot method: <b>hands CU · face CU · wide · OTS · creative</b>.</p></div>
+      <div class="ref-cell"><div class="rk mono">COMPOSITION</div><p>Eyes on the top third, lead room, shoot <b>through</b> foreground for depth.</p></div>
+      <div class="ref-cell"><div class="rk mono">LIGHT</div><p>Subject at 45° to a window; outdoors use golden hour or open shade; at night, <b>pools of light</b> with the source in frame.</p></div>
+      <div class="ref-cell"><div class="rk mono">SOUND</div><p>Within <b>1 metre</b>, kill the hum, block the wind, record room tone.</p></div>
+      <div class="ref-cell"><div class="rk mono">EDIT GRAMMAR</div><p>One side of the <b>180° line</b>, cut on action, vary sizes, hard cuts only.</p></div>
+      <div class="ref-cell"><div class="rk mono">THE HABIT</div><p>Never shoot without <b>watching it back the same day</b>. That's the whole trick.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    Progress is saved in this browser only. &nbsp;·&nbsp; Built as a companion to the
+    <a href="https://github.com/ahsanfaridi57-dotcom/claude-code-demo/blob/claude/iphone-filmmaking-30-days-cjzqk3/iphone-filmmaking-30-days.md">course notes</a>.
+  </footer>
+</div>
+
+<script>
+const WEEKS=[
+ {k:"Week 1",t:"Seeing Like a Camera",sub:"Control, framing, and the vocabulary of shots.",days:[
+  {n:1,title:"Take control of the camera",teaser:"Lock focus and exposure so the image stops breathing.",len:20,
+   idea:"The iPhone constantly re-adjusts exposure and focus automatically, which looks amateur — brightness pumps mid-shot, focus hunts. Filmmakers lock these. Tap your subject to set focus/exposure, then <b>press and hold until \"AE/AF LOCK\" appears</b>. Slide up/down beside the sun icon to brighten or darken. Rule of thumb: better slightly dark than blown out — you can lift shadows later, but a white blown-out sky is gone forever.",
+   ex:"Film the same subject near a window three times, 15 seconds each: (1) full auto, moving the phone around; (2) AE/AF locked; (3) locked and deliberately a touch darker to protect the window highlights. Move the phone during each take so you can see auto vs. locked behaviour.",
+   check:"In clip 1, can you see the brightness \"breathing\"? In clips 2–3, does it stay steady? Which looks most like a movie?"},
+  {n:2,title:"Handheld stability",teaser:"Your body is the tripod — learn to brace.",len:20,
+   idea:"You have no tripod, so your body is the tripod: elbows tucked hard against your ribs, phone gripped in both hands, a strap of tension across your shoulders. Exhale slowly during the shot. For extra stability, lean on a wall or doorframe, or brace elbows on a table, railing, or your knees. Keep clips short — nobody holds steady for a minute, anyone can for 10 seconds. Also turn on <b>Enhanced Stabilization</b> or <b>Action Mode</b> for moving shots (Action Mode crops in and needs light).",
+   ex:"Film five 10-second static shots around your home: (1) standing free, (2) leaning on a wall, (3) elbows braced on a surface, (4) crouched with elbows on knees, (5) phone pressed to a doorframe. Same subject distance each time.",
+   check:"Rank the five for steadiness — the bracing hierarchy should be obvious. From now on, always find a brace."},
+  {n:3,title:"Shot sizes",teaser:"Wide, medium, close-up, extreme close-up — and move your feet.",len:20,
+   idea:"The basic vocabulary. <b>Wide (WS):</b> the whole place — establishes where we are. <b>Medium (MS):</b> waist up — how people talk. <b>Close-up (CU):</b> the face — emotion. <b>Extreme close-up (ECU):</b> a detail — intensity or information. Change size by <b>moving your feet</b>, not pinch-zooming — digital zoom destroys quality. The lens buttons (0.5×/1×/2×/3×) are fine because they're real lenses.",
+   ex:"Pick one subject. Film 10 seconds each — WS, MS, CU, ECU — walking closer each time, with AE/AF lock and your bracing. Then repeat the CU using the 2×/3× lens from further back and compare.",
+   check:"Does each size \"say\" something different? Notice how the telephoto close-up flatters compared to shoving the wide lens in a face."},
+  {n:4,title:"Composition I — thirds, headroom, lead room",teaser:"Put the important things on the grid lines, not dead centre.",len:20,
+   idea:"Put important things on the grid lines. Eyes go on the <b>top third</b>. <b>Headroom:</b> a small gap above the head — too much makes people look like they're sinking. <b>Lead room:</b> when someone looks or moves sideways, leave space in front of them, not behind. Centre framing isn't forbidden — it reads formal or confrontational — but make it a choice, not a default.",
+   ex:"Film a person (or a lamp with a clear \"face\" direction) in a medium shot four ways, 10 seconds each: (1) dead centre with too much headroom, (2) eyes on the top-third line, correct headroom, (3) on a side third looking <b>into</b> the empty space, (4) on a side third looking <b>out</b> of frame with the space behind them.",
+   check:"Frame 2 vs 1 — instantly more professional? Frame 4 should feel wrong and tense. Remember that feeling; it's a tool."},
+  {n:5,title:"Composition II — depth and layers",teaser:"A screen is flat; fake depth with foreground, lines, and frames.",len:20,
+   idea:"A screen is flat; your job is to fake depth. Three tools: (1) <b>foreground/midground/background</b> — shoot <b>through</b> things (a doorway, plants, a shoulder) so something soft sits near the lens; (2) <b>leading lines</b> — roads, railings, table edges pointing at your subject; (3) <b>frame within a frame</b> — doorways, windows, mirrors around your subject. Flat = subject on a bare wall. Deep = layers.",
+   ex:"Same subject, four 10-second shots: (1) flat against a wall (control), (2) through a foreground object, (3) at the end of a leading line, (4) framed inside a doorway or window. Hunting for the frame is the exercise.",
+   check:"Compare shot 1 to the others. Depth should make the image feel bigger and more cinematic — same phone, same subject."},
+  {n:6,title:"Camera height and angle",teaser:"Where you put the lens vertically is a statement.",len:20,
+   idea:"Camera height is a statement. <b>Eye level:</b> neutral, honest. <b>Low angle</b> (looking up): powerful, imposing. <b>High angle</b> (looking down): small, vulnerable — or an overhead \"god view\" for layouts (food, desks, maps). <b>Dutch tilt</b> (slanted horizon): unease — use rarely. Beginners shoot everything from standing height; simply crouching is the fastest way to make footage interesting.",
+   ex:"Film a simple action (pouring a drink, tying shoes) from eye level, low angle (phone near the floor looking up), high angle, and directly overhead of the hands. 10 seconds each. Phones can go where big cameras can't.",
+   check:"Does the low angle change how the person \"feels\"? Which angle told the story of the action best?"},
+  {n:7,title:"Build your first sequence",teaser:"Combine everything into one six-shot mini-film.",len:25,
+   idea:"Consolidation day. A sequence is several shots of one event cut together to compress time and direct attention. Today you combine it all — locked exposure, bracing, varied sizes, composition, varied angles. The discipline: <b>every shot a different size or angle</b>. Two similar shots in a row will \"jump\" when cut together.",
+   ex:"Film \"making a hot drink\" (or any 2-minute routine) in exactly six static shots, ~10 sec each: e.g. (1) WS entering, (2) overhead ECU of the switch, (3) MS at the counter, (4) low-angle CU of steam, (5) ECU of pouring, (6) CU of the first sip. Plan the six on paper first.",
+   check:"Play the clips back-to-back in order. Even uncut, does it read as a little story a stranger could follow?"},
+ ]},
+ {k:"Week 2",t:"Movement and Light",sub:"Moving the camera on purpose, and shaping the light you already have.",days:[
+  {n:8,title:"The pan and the tilt",teaser:"The only moves that don't need walking — done properly.",len:20,
+   idea:"A pan (horizontal) and tilt (vertical) don't require walking. Handheld rules: (1) <b>rotate from your hips/torso</b>, not your wrists — pre-twist toward the END position and unwind into the shot; (2) know your <b>start and end frame</b> before rolling — a pan is a sentence, not a security-camera sweep; (3) go slower than feels natural, then slower again; (4) hold the start still for 2 seconds, move, hold the end for 2 seconds — those holds make it usable.",
+   ex:"(1) Pan from an empty doorway to a person across the room — 3 takes, each slower. (2) Tilt from someone's shoes up to their face. (3) A reveal pan: start on a detail (a photo, a cup), pan to reveal the wider scene it belongs to.",
+   check:"Are your start/end frames each well-composed on their own? Is the motion smooth or wobbly-wristed? The reveal should feel like it delivers information."},
+  {n:9,title:"Push in, pull out",teaser:"Walk toward or away — the ninja walk.",len:20,
+   idea:"Walking toward or away while filming. A slow <b>push-in</b> builds intensity or focus (a realization on a face). A <b>pull-out</b> ends things, reveals context, or leaves someone alone. Technique — the \"ninja walk\": knees bent, feet rolling heel-to-toe, phone held slightly away from your body so your arms absorb bounce, small steps. Enable Action Mode if there's light; compare with it off.",
+   ex:"(1) Push-in from a wide room to a close-up of an object — 3 takes: normal walk (feel the bounce), ninja walk, ninja walk with Action Mode. (2) Pull-out from a face to a wide of them alone. Keep each to 5–8 seconds.",
+   check:"How much did the ninja walk kill the vertical bounce? Does the push-in create a feeling of \"pay attention to THIS\"?"},
+  {n:10,title:"Tracking a moving subject",teaser:"Follow, lead, and side-track a person on the move.",len:20,
+   idea:"Following someone as they move. Three handheld tracks: <b>follow</b> (behind them), <b>lead</b> (walking backward in front — have a spotter!), and <b>side track</b> (parallel). Keep the subject's position consistent in frame — pick where they sit on the grid and hold them there; legs stabilize, arms fine-correct. Let the subject, not the camera, be the thing moving through the world.",
+   ex:"Film a person, a pet, or your own feet: (1) 10-sec follow down a hallway or pavement, (2) 10-sec side track, (3) lead shot if safe. Two takes each, second slower and more deliberate.",
+   check:"Does the subject stay glued to the same spot in frame, or drift? Drift = your walking rhythm leaking into your arms."},
+  {n:11,title:"The orbit and the reveal",teaser:"Two moves that buy cheap production value.",len:20,
+   idea:"<b>Orbit/arc:</b> walk a half-circle around a stationary subject, keeping them centred and the same size — the background sweeps behind them, which looks expensive. <b>Movement reveal:</b> start with the lens blocked or on a foreground object, then move so the real subject appears (slide from behind a wall, rise from behind a counter). Reveals turn a boring \"here's a room\" into a moment.",
+   ex:"(1) Orbit a seated person or an object: half-circle, 10 sec, 3 takes — keep the distance constant, as if a rope ties you to the subject. (2) Two reveals: emerge from behind a doorframe; and start on a close object and slide sideways to reveal a person behind it.",
+   check:"In the orbit, does the subject stay the same size, or do you drift in/out? Do the reveals create a small \"oh!\" beat?"},
+  {n:12,title:"Light I — direction and quality",teaser:"You own no lights — so position people relative to the light that exists.",len:20,
+   idea:"Your skill is positioning people relative to existing light. <b>Direction:</b> front light (flat), <b>side light</b> (shape, drama — the go-to), back light (silhouette or halo). <b>Quality:</b> hard (direct sun/bare bulb — sharp shadows) vs. <b>soft</b> (window with no direct sun, cloudy day — flattering). The biggest free upgrade in filmmaking: put your subject beside a big window, turned 45° to it.",
+   ex:"Put a face (front camera is fine) near a window, 15 sec each: (1) facing the window, (2) window 90° to one side, (3) window behind, exposure locked on the face, (4) window behind, exposure locked on the window (silhouette). Note if today's window light is hard or soft.",
+   check:"Side light should look most dimensional — see one side of the face fall into shadow? The silhouette and the halo are both usable choices."},
+  {n:13,title:"Light II — golden hour and outdoors",teaser:"The cheapest cinematography money can't buy.",len:20,
+   idea:"The hour after sunrise and before sunset gives low, warm, soft-directional light. Midday sun is the enemy — top-down hard light puts raccoon shadows in eye sockets. Midday survival: put subjects in <b>open shade</b> (shadow of a building, under a tree) facing out toward the light, or backlight them and expose for the face. Overcast is a giant free softbox — flat but flattering.",
+   ex:"Time it to golden hour if you can. Film a person or object: (1) side-lit by the low sun, (2) backlit with a rim/halo, exposed for the subject, (3) in open shade facing the open sky. Midday-only? Do the open-shade versions plus one direct-sun shot to see why it's ugly.",
+   check:"Backlit golden hour should look like a commercial. Compare skin texture in open shade vs. direct sun."},
+  {n:14,title:"Light III — low light and night",teaser:"Work with the phone, not against it, after dark.",len:20,
+   idea:"Phones struggle in the dark — noise, mush, smear. Work with the phone: (1) find the light that exists — streetlamps, shop windows, screens, a stove hood — and put your subject <b>in</b> it; (2) expose slightly under rather than brightening into noise; (3) brace harder than usual; (4) practical lights <b>in frame</b> (lamps, signs, fairy lights, a phone screen on a face) look great and hide noise in atmosphere.",
+   ex:"After dark: (1) a person lit only by a lamp that's IN the shot; (2) a face lit by a phone/laptop screen; (3) someone stepping from darkness into a pool of streetlight. Lock exposure on the lit side of the face each time.",
+   check:"Which shots hide the noise best? \"Small pools of light in darkness\" beats \"everything dimly visible\" every time."},
+ ]},
+ {k:"Week 3",t:"Film Grammar",sub:"Stop shooting shots. Start shooting scenes you can edit.",days:[
+  {n:15,title:"Coverage and the five-shot method",teaser:"Five shots of anything cut into a watchable sequence.",len:25,
+   idea:"From here you shoot <b>scenes</b>, not shots. Coverage means enough different shots to edit an event. The five-shot method for any action: (1) <b>CU of the hands</b>, (2) <b>CU of the face</b>, (3) <b>wide</b> showing person + place, (4) <b>over-the-shoulder</b>, (5) <b>one creative shot</b> — low angle, orbit, through a doorway. Five shots of anything cut into a watchable sequence.",
+   ex:"Pick an action with texture — chopping vegetables, sketching, repotting a plant. Shoot the five shots, ~15 sec each, repeating the action for each setup. Different size/angle every shot.",
+   check:"Could you cut these five into a 30-second piece where the viewer understands who, where, what, and how it feels? That's now your standard for every scene."},
+  {n:16,title:"Continuity and cutting on action",teaser:"Cut during a movement and the edit disappears.",len:20,
+   idea:"To cut invisibly, cut <b>during a movement</b> — a door opening, a cup lifted, someone sitting. The eye follows the motion across the cut. This needs the <b>same action shot twice from two setups</b>, with the action <b>overlapping</b> in both (film the whole action both times). Keep continuity: same hand, same objects in the same places, roughly the same speed.",
+   ex:"Film one complete action twice — e.g. picking up a mug and drinking. Take 1: medium shot, full action. Take 2: close-up, full action, matching hand and speed. Do it for two actions. If you have an editor (Day 21), try cutting from MS to CU mid-lift.",
+   check:"Did the subject genuinely repeat the action the same way? Mismatched hands and teleporting mugs are the #1 continuity bust."},
+  {n:17,title:"The 180° rule and screen direction",teaser:"Stay on one side of the line, or the room flips.",len:20,
+   idea:"Draw an imaginary line between two people (or along a subject's path). Keep your camera on <b>one side</b> of it for the whole scene. Cross it and person A suddenly looks left instead of right — the audience's mental map breaks. Same for movement: if someone exits frame right, they enter the next shot from frame left, still travelling the same screen direction.",
+   ex:"Two chairs facing each other (use a person + a propped-up jacket if solo). (1) OTS of each from the SAME side — A looks right, B looks left: they connect. (2) Break it: shoot B from the wrong side — both look the same way. (3) Someone walks a door left-to-right, continues in the next room left-to-right, then a wrong right-to-left version.",
+   check:"Watch the correct pair, then the broken pair. You should physically feel the broken one being wrong. That instinct is the lesson."},
+  {n:18,title:"Shot / reverse shot — covering a conversation",teaser:"The bread and butter of narrative coverage.",len:25,
+   idea:"Standard conversation coverage: (1) a <b>master</b> — a wide two-shot, entire conversation; (2) <b>OTS on A</b> — B's shoulder framing A's face; (3) <b>OTS on B</b> from the same side of the line (Day 17!); optionally (4) <b>clean singles</b>. Match the two OTS shots: same size, same eye height, mirrored. Run the whole conversation in every setup so you can cut anywhere.",
+   ex:"Get anyone into a 30-second exchange (\"What do you want for dinner?\" works). Shoot: master two-shot, OTS on each person, one clean CU. Solo? Stage it with a stand-in and shoot the coverage anyway — the framing skills transfer completely.",
+   check:"Are the two OTS frames mirror images in size and eye position? Do the eyelines cross (A looks frame-right, B frame-left)?"},
+  {n:19,title:"Sound",teaser:"Audiences forgive ugly video, never bad audio.",len:20,
+   idea:"With no mic: (1) <b>distance is everything</b> — the mics need to be within ~1 m of a speaker, so frame close, or shoot wide for picture and grab separate close audio in Voice Memos to sync; (2) kill background noise at the source — fridge, fan, AC, music off; (3) never cover the mics with your grip; (4) record 30 sec of <b>room tone</b> at every location; (5) wind outdoors is fatal — block it with your body or move.",
+   ex:"Record a fixed sentence: (1) from 3 m, (2) from 1 m, (3) from 1 m with the fridge/fan OFF. Then 30 sec of room tone. Outdoors: one clip into the wind, one with your body blocking it. Listen on headphones.",
+   check:"The 3 m vs 1 m difference should shock you. Can you hear the machine hum you'd stopped noticing?"},
+  {n:20,title:"B-roll and inserts",teaser:"The shots that cover cuts and carry meaning.",len:20,
+   idea:"B-roll is every shot that isn't your main subject — hands, environment, details, reactions. Two jobs: <b>covering cuts</b> (a cutaway hides a jump when you shorten a scene) and <b>carrying meaning</b> (an untouched coffee gone cold says \"she waited a long time\" with no dialogue). Shoot it like a hunter: details that <b>tell</b>, not random pretty stuff. Rule of thumb: five detail shots for every minute of main footage.",
+   ex:"Choose a person or place with a story (a busy kitchen, your desk mid-project). Shoot 10 b-roll shots, 8–10 sec each, that describe it WITHOUT any face saying anything: hands, textures, wide establishers, details, one implying time passing.",
+   check:"Show the 10 clips to someone and ask what story they add up to. If they get it, your b-roll speaks."},
+  {n:21,title:"Edit day I — assemble a sequence",teaser:"Editing teaches shooting better than anything else.",len:25,
+   idea:"Editing teaches shooting — you discover which shots you wish you'd got. Install <b>CapCut or iMovie</b> (both free). Today's craft: (1) trim dead air off the head and tail of every clip; (2) cut on action (Day 16); (3) vary shot sizes across cuts (Day 7); (4) shorter than feels right — 3–5 sec a shot; (5) hard cuts only — dissolves are a crutch.",
+   ex:"Edit your Day 15 five-shot coverage (or Day 7 sequence) into a 30–45 second piece. Then — the important part — write down the ONE shot you wish you had, go film it now, and drop it into the cut.",
+   check:"Does anything \"jump\"? (Similar sizes cut together — Day 7.) Did the missing-shot exercise sting? That pain is what \"shooting for the edit\" means."},
+ ]},
+ {k:"Week 4",t:"Real Situations & the Final Scene",sub:"Special tools, hard conditions, and shooting a full scripted scene.",days:[
+  {n:22,title:"Frame rates — slow motion and timelapse",teaser:"Deviating from 24 fps is a choice about time.",len:20,
+   idea:"Changing frame rate is a storytelling choice about time. <b>Slo-mo</b> (120/240 fps): reveals detail and emotion in motion — splashes, hair, fabric. It needs <b>lots of light</b> (high frame rate = fast shutter = dark, noisy indoors) and works best on things that move. <b>Timelapse</b>: compresses minutes into seconds — clouds, crowds, a task done. For timelapse, handheld is out — <b>brace the phone against something rigid</b>.",
+   ex:"(1) Three slo-mo clips outdoors or by a bright window: water pouring, someone turning, hair in wind. (2) Prop the phone against a solid object and timelapse 5–10 min of change (sky, street, tidying a room — walk in and out of frame).",
+   check:"Compare a bright slo-mo clip to one shot in a dim room — see the noise/flicker? File away: slo-mo is a daylight tool."},
+  {n:23,title:"Cinematic Mode and rack focus",teaser:"Fake shallow depth — and steer attention with focus.",len:20,
+   idea:"Cinematic Mode fakes shallow depth of field and lets you <b>rack focus</b>: shift focus between subjects mid-shot to steer attention (\"she's talking… but look at his reaction\"). Tap subjects while rolling; you can even redo focus later in the Photos editor. Limits: struggles with fast motion, complex edges (hair, glasses), and low light — a special tool, not the default.",
+   ex:"In Cinematic Mode: (1) frame a foreground person and a background object and rack focus between them twice; (2) shoot a slow push-in on a face; (3) shoot the same setup in normal video and compare honestly. Then open a clip in Photos → Edit and change a focus decision in post.",
+   check:"Where does the fake blur break (hair edges, cup rims)? When did it genuinely elevate the shot? Now you know when to reach for it."},
+  {n:24,title:"The interview / talking head",teaser:"The most-shot setup on earth — half the course in one frame.",len:25,
+   idea:"Combines half the course: sit the subject 45° to a window (Day 12), frame a medium close-up with eyes on the top third (Day 4), have them look at <b>you</b> — your face right beside the lens — not into the lens, phone within 1 m for sound (Day 19), background with depth (Day 5). Ask questions that can't be answered yes/no, and have them fold the question into the answer (\"What did you eat?\" → \"This morning I ate…\").",
+   ex:"Interview anyone for 2 minutes about something they love. Set up properly: window light, thirds, depth behind them, close enough for audio, room tone after. Then grab 5 b-roll shots of the thing they talked about.",
+   check:"Eyes bright and lit? Eyeline close to the lens but not in it? Audio clean on headphones? Could you cut the b-roll over their voice?"},
+  {n:25,title:"Action and movement",teaser:"Fast subjects break polite technique — so change the approach.",len:25,
+   idea:"Fast subjects change the approach: (1) <b>let the subject cross the frame</b> — a static braced camera with a cyclist ripping through beats a flailing pan; (2) when you must move, use Action Mode and commit to big smooth moves; (3) get <b>more angles than feels necessary</b> — action edits are fast, 1–2 sec a shot; (4) whip-pan with the motion as a transition; (5) low angles make anything more heroic; (6) shoot some in slo-mo for the highlight beats.",
+   ex:"Film 60 seconds of fast action — a runner/cyclist, a dog fetching, traffic: (1) static wide letting the subject cross frame, (2) low-angle static, (3) tracking alongside, (4) whip-pan past you, (5) one slo-mo pass. Multiple passes = free coverage.",
+   check:"Compare the static \"subject crosses frame\" shot to your tracking attempt — often the static one wins. Do your five angles cut into an energetic sequence?"},
+  {n:26,title:"Run and gun — difficult real-world conditions",teaser:"Weddings, streets, events, travel — no second takes.",len:25,
+   idea:"No second takes. The discipline: (1) <b>arrive at the shot before the moment</b> — anticipate where action happens and be framed up waiting; (2) shoot the five-shot pattern (Day 15) on autopilot; (3) hold every shot 10 full seconds even when nervous — count silently; (4) in ugly light, expose for faces; (5) in crowds, get high for overview and low/close for intimacy — the mid-height mush is where boring footage lives; (6) grab ambient sound and room tone between moments.",
+   ex:"Go somewhere alive — market, park, café, busy street. In 25 minutes bring back a five-shot story of the place plus five b-roll details, all usable: steady, composed, well-exposed. No do-overs — treat every take as the only take.",
+   check:"How many of your ten shots are genuinely usable? (Honest count.) Where did you get caught moving when the moment happened?"},
+  {n:27,title:"Blocking and staging",teaser:"Choreograph where subjects move inside the frame.",len:25,
+   idea:"Directors think in <b>blocking</b> — choreographing where subjects move within a frame. Tools: (1) <b>depth blocking</b> — a subject walks from background to foreground, changing their own shot size with zero camera movement; (2) crossing frame to motivate a pan; (3) two people rebalancing a frame as one sits/stands/turns; (4) motivated camera — it only moves when a subject pulls it. One well-blocked shot can replace three cuts.",
+   ex:"With a person (or walking through frame yourself, phone braced on a shelf): (1) subject starts deep in the room, walks to a close-up, delivers a line — camera never moves; (2) subject crosses the room, your pan follows to a new composed frame; (3) two \"characters\" — one turns away to a window mid-conversation; recompose as they move.",
+   check:"Shot 1 should feel like a \"real movie shot\" — blocking doing the work of cutting. Did your pan land on a composed end frame (Day 8)?"},
+  {n:28,title:"Write the scene, build the shot list",teaser:"Pre-production for your graduation piece.",len:25,
+   idea:"Pick a simple two-person scene, 30–60 sec, one location, with a tiny arc: a want, some friction, a resolution. (Steal one: someone asks to borrow money; a present goes wrong; two people grab the last slice.) Write half a page of dialogue. Then a <b>shot list</b>: master two-shot, OTS both ways, clean CU on each, one insert (an object that matters), one blocking or camera move that earns its place. Sketch each frame as stick figures — that's a storyboard. Decide light source and time of day.",
+   ex:"Write the scene (10 min). Build the shot list and stick-figure storyboard (10 min). Then scout: stand in the real location, look through the phone at each planned frame, and film a 10-second lighting/framing test of the two key setups (5 min).",
+   check:"Does every shot on the list have a job? Can the whole list be shot from one side of the 180° line? Is your location quiet?"},
+  {n:29,title:"Shoot the scene",teaser:"Production day — full coverage, setup by setup.",len:30,
+   idea:"Production. Block it (walk it through with your actors), rehearse once, then shoot <b>setup by setup</b> — all takes of the master first, then each OTS, then CUs, then the insert — running the <b>full scene every take</b> so you can cut anywhere. Two takes minimum per setup. Direct with playback: watch, adjust, go again. Watch continuity (Day 16), keep eyelines on consistent sides (Days 17–18), stay within 1 m for audio (Day 19), record room tone before wrapping.",
+   ex:"Shoot your Day 28 scene, complete coverage per your shot list. No actors? Shoot it playing both parts, or make it a phone-call scene with one visible actor — the coverage discipline is the point.",
+   check:"After each setup: exposure locked? framing on thirds? eyeline correct side? audio close enough? Got two clean takes? Only then move on."},
+  {n:30,title:"Cut the scene, judge the month",teaser:"Post-production, graduation, and where to go next.",len:30,
+   idea:"Cut the scene in CapCut/iMovie: lay the master as a spine, replace sections with OTS/CU coverage, cut on action, save the tightest close-up for the key beat, drop the insert where it lands hardest. Aim for 45–75 seconds. Then watch your Day 2 clips and this scene back to back. <b>Where next:</b> repeat Days 15–30 monthly with new scenes — coverage is a muscle. First gear, in order of impact: a $20 clamp tripod, a $30 lavalier mic, and only much later a gimbal.",
+   ex:"Edit the scene (20 min). Then a working-level self-assessment (10 min) — score yourself 1–5 on each: steady braced shots · locked exposure · shot-size variety · composition with depth · using found light · clean audio · correct eyelines/180° · coverage that cuts. Anything under 3 tells you exactly which day to repeat.",
+   check:"And keep the habit that made this month work: never shoot without watching it back the same day."},
+ ]},
+];
+
+const KEY="iphone-film-progress-v1";
+let done=new Set();
+try{const s=JSON.parse(localStorage.getItem(KEY));if(Array.isArray(s))done=new Set(s);}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify([...done]));}catch(e){}}
+
+const course=document.getElementById("course");
+const weeknav=document.getElementById("weeknav");
+const chk='<svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"></polyline></svg>';
+
+WEEKS.forEach((w,wi)=>{
+  const wid="week"+(wi+1);
+  const nav=document.createElement("a");
+  nav.href="#"+wid;
+  nav.innerHTML='<div class="wk-k mono">'+w.k.toUpperCase()+'</div><div class="wk-t">'+w.t+'</div><div class="wk-p mono" data-navp="'+wi+'"></div>';
+  weeknav.appendChild(nav);
+
+  const sec=document.createElement("section");
+  sec.className="week";sec.id=wid;
+  sec.innerHTML='<div class="week-head"><span class="week-k mono">'+w.k.toUpperCase()+'</span>'+
+    '<h2 class="week-title">'+w.t+'</h2><span class="week-tally mono" data-tally="'+wi+'"></span>'+
+    '<div class="week-sub">'+w.sub+'</div></div>';
+  const list=document.createElement("div");list.className="days";
+
+  w.days.forEach(d=>{
+    const card=document.createElement("article");
+    card.className="day"+(done.has(d.n)?" done":"");
+    card.dataset.day=d.n;
+    const dd=String(d.n).padStart(2,"0");
+    card.innerHTML=
+      '<div class="day-head" role="button" tabindex="0" aria-expanded="false">'+
+        '<span class="daynum mono">DAY '+dd+'</span>'+
+        '<span class="day-titles"><span class="day-title">'+d.title+'</span>'+
+          '<span class="day-teaser">'+d.teaser+'</span></span>'+
+        '<button class="check" aria-label="Mark day '+d.n+' complete" aria-pressed="'+done.has(d.n)+'">'+chk+'</button>'+
+        '<span class="chev mono" aria-hidden="true">▶</span>'+
+      '</div>'+
+      '<div class="day-body"><div class="day-body-in"><div class="day-content">'+
+        '<div class="block idea"><div class="block-k mono">THE IDEA</div><p>'+d.idea+'</p></div>'+
+        '<div class="block ex"><div class="block-k mono">EXERCISE<span class="exlen mono">~'+d.len+' MIN</span></div><p>'+d.ex+'</p></div>'+
+        '<div class="block"><div class="block-k mono">SELF-CHECK</div><p>'+d.check+'</p></div>'+
+      '</div></div></div>';
+
+    const head=card.querySelector(".day-head");
+    const checkBtn=card.querySelector(".check");
+    function toggleOpen(){
+      const open=card.classList.toggle("open");
+      head.setAttribute("aria-expanded",open);
+    }
+    head.addEventListener("click",e=>{if(e.target.closest(".check"))return;toggleOpen();});
+    head.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggleOpen();}});
+    checkBtn.addEventListener("click",e=>{
+      e.stopPropagation();
+      if(done.has(d.n))done.delete(d.n);else done.add(d.n);
+      const on=done.has(d.n);
+      card.classList.toggle("done",on);
+      checkBtn.setAttribute("aria-pressed",on);
+      save();update();
+    });
+    list.appendChild(card);
+  });
+  sec.appendChild(list);
+  course.appendChild(sec);
+});
+
+const pfill=document.getElementById("pfill");
+const pnum=document.getElementById("pnum");
+const pbar=document.getElementById("pbar");
+const resumeBtn=document.getElementById("resumeBtn");
+const resumeLbl=document.getElementById("resumeLbl");
+
+function update(){
+  const n=done.size;
+  pfill.style.width=(n/30*100)+"%";
+  pnum.textContent=n;
+  pbar.setAttribute("aria-valuenow",n);
+  WEEKS.forEach((w,wi)=>{
+    const c=w.days.filter(d=>done.has(d.n)).length;
+    const t=w.days.length;
+    document.querySelector('[data-tally="'+wi+'"]').textContent=c+"/"+t;
+    document.querySelector('[data-navp="'+wi+'"]').textContent=c+" / "+t+" done";
+  });
+  let next=null;
+  for(const w of WEEKS)for(const d of w.days){if(!done.has(d.n)){next=d.n;break;}if(next)break;}
+  if(next===null){resumeLbl.textContent="All 30 days complete";resumeBtn.querySelector(".dot").style.background="var(--done)";}
+  else{resumeLbl.textContent=(done.size?"Resume — Day "+next:"Start Day 1");resumeBtn.querySelector(".dot").style.background="";}
+  resumeBtn.dataset.next=next===null?"":next;
+}
+
+resumeBtn.addEventListener("click",()=>{
+  const next=resumeBtn.dataset.next;
+  const target=next?document.querySelector('.day[data-day="'+next+'"]'):document.querySelector('.day[data-day="30"]');
+  if(!target)return;
+  if(!target.classList.contains("open")){target.classList.add("open");target.querySelector(".day-head").setAttribute("aria-expanded","true");}
+  target.scrollIntoView({behavior:"smooth",block:"start"});
+});
+
+const expandBtn=document.getElementById("expandBtn");
+let allOpen=false;
+expandBtn.addEventListener("click",()=>{
+  allOpen=!allOpen;
+  document.querySelectorAll(".day").forEach(c=>{
+    c.classList.toggle("open",allOpen);
+    c.querySelector(".day-head").setAttribute("aria-expanded",allOpen);
+  });
+  expandBtn.textContent=allOpen?"Collapse all":"Expand all";
+});
+
+// theme toggle
+const themeBtn=document.getElementById("themeBtn");
+themeBtn.addEventListener("click",()=>{
+  const cur=document.documentElement.getAttribute("data-theme");
+  const isDark=cur?cur==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
+  document.documentElement.setAttribute("data-theme",isDark?"light":"dark");
+});
+
+update();
+
+// Draw a home-screen app icon so "Add to Home Screen" gets a proper tile.
+function setIcon(){
+  try{
+    const s=180,c=document.createElement("canvas");c.width=s;c.height=s;
+    const x=c.getContext("2d");
+    const g=x.createLinearGradient(0,0,s,s);
+    g.addColorStop(0,"#E8A33D");g.addColorStop(1,"#B96E10");
+    x.fillStyle=g;x.fillRect(0,0,s,s);
+    // clapperboard strip along the top
+    x.fillStyle="rgba(20,18,14,.92)";x.fillRect(0,0,s,34);
+    x.save();x.translate(0,0);
+    for(let i=-1;i<7;i++){
+      x.fillStyle="#E8A33D";
+      x.beginPath();
+      x.moveTo(i*28,0);x.lineTo(i*28+16,0);x.lineTo(i*28+6,34);x.lineTo(i*28-10,34);
+      x.closePath();x.fill();
+    }
+    x.restore();
+    // numerals
+    x.fillStyle="#14120E";x.textAlign="center";x.textBaseline="middle";
+    x.font="800 88px -apple-system,system-ui,sans-serif";
+    x.fillText("30",s/2,96);
+    x.font="700 22px -apple-system,system-ui,sans-serif";
+    x.fillStyle="rgba(20,18,14,.72)";
+    x.fillText("D A Y S",s/2,146);
+    const link=document.createElement("link");
+    link.rel="apple-touch-icon";
+    link.href=c.toDataURL("image/png");
+    document.head.appendChild(link);
+  }catch(_){}
+}
+setIcon();
+</script>
+</body>
+</html>
