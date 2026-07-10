@@ -1,4 +1,15 @@
-<title>iPhone Filmmaking in 30 Days</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="30 Days">
+  <meta name="theme-color" content="#FBFAF8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#14120E" media="(prefers-color-scheme: dark)">
+  <title>iPhone Filmmaking in 30 Days</title>
 <style>
   :root{
     --bg:#FBFAF8; --surface:#FFFFFF; --surface-2:#F4F1EB;
@@ -36,12 +47,13 @@
     --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
   }
 
-  *{box-sizing:border-box}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{background:var(--bg)}
   body{
     margin:0;background:var(--bg);color:var(--ink);
     font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     line-height:1.6;-webkit-font-smoothing:antialiased;
-    text-underline-offset:2px;
+    text-underline-offset:2px;overscroll-behavior-y:none;
   }
   .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
   .wrap{max-width:920px;margin:0 auto;padding:0 20px}
@@ -190,7 +202,19 @@
   @media (prefers-reduced-motion:reduce){
     *{transition:none!important;animation:none!important}
   }
+
+  /* fullscreen home-screen app: keep clear of notch & home indicator */
+  @supports(padding:max(0px)){
+    .topbar-in{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+    .wrap{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+    footer{padding-bottom:calc(50px + env(safe-area-inset-bottom))}
+    @media (max-width:560px){
+      .topbar-in{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+    }
+  }
 </style>
+</head>
+<body>
 
 <div class="topbar">
   <div class="topbar-in">
@@ -494,4 +518,39 @@ themeBtn.addEventListener("click",()=>{
 });
 
 update();
+
+// Draw a home-screen app icon so "Add to Home Screen" gets a proper tile.
+function setIcon(){
+  try{
+    const s=180,c=document.createElement("canvas");c.width=s;c.height=s;
+    const x=c.getContext("2d");
+    const g=x.createLinearGradient(0,0,s,s);
+    g.addColorStop(0,"#E8A33D");g.addColorStop(1,"#B96E10");
+    x.fillStyle=g;x.fillRect(0,0,s,s);
+    // clapperboard strip along the top
+    x.fillStyle="rgba(20,18,14,.92)";x.fillRect(0,0,s,34);
+    x.save();x.translate(0,0);
+    for(let i=-1;i<7;i++){
+      x.fillStyle="#E8A33D";
+      x.beginPath();
+      x.moveTo(i*28,0);x.lineTo(i*28+16,0);x.lineTo(i*28+6,34);x.lineTo(i*28-10,34);
+      x.closePath();x.fill();
+    }
+    x.restore();
+    // numerals
+    x.fillStyle="#14120E";x.textAlign="center";x.textBaseline="middle";
+    x.font="800 88px -apple-system,system-ui,sans-serif";
+    x.fillText("30",s/2,96);
+    x.font="700 22px -apple-system,system-ui,sans-serif";
+    x.fillStyle="rgba(20,18,14,.72)";
+    x.fillText("D A Y S",s/2,146);
+    const link=document.createElement("link");
+    link.rel="apple-touch-icon";
+    link.href=c.toDataURL("image/png");
+    document.head.appendChild(link);
+  }catch(_){}
+}
+setIcon();
 </script>
+</body>
+</html>
